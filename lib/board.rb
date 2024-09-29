@@ -1,34 +1,28 @@
 # frozen_string_literal: true
 
-class Board
-  BLACK_PIECES = { Knight: '♘', Queen: '♕', King: '♔', Rook: '♖', Bishop: '♗', Pawn: '♙' }.freeze
-  WHITE_PIECES = { Knight: '♞', Queen: '♛', King: '♚', Rook: '♜', Bishop: '♝', Pawn: '♟' }.freeze
+require_relative "piece"
 
+class Board
   def initialize
     @board = Array.new(8) { Array.new(8) }
-    setBlackPieces
-    setWhitePieces
+    setPieces
   end
 
-  def setBlackPieces
-    @board[0] = [BLACK_PIECES[:Rook], BLACK_PIECES[:Knight], BLACK_PIECES[:Bishop], BLACK_PIECES[:Queen],
-                 BLACK_PIECES[:King], BLACK_PIECES[:Bishop], BLACK_PIECES[:Knight], BLACK_PIECES[:Rook]]
-    @board[1] = Array.new(8) { BLACK_PIECES[:Pawn] }
-  end
-
-  def setWhitePieces
-    @board[7] = [WHITE_PIECES[:Rook], WHITE_PIECES[:Knight], WHITE_PIECES[:Bishop], WHITE_PIECES[:Queen],
-                 WHITE_PIECES[:King], WHITE_PIECES[:Bishop], WHITE_PIECES[:Knight], WHITE_PIECES[:Rook]]
-    @board[6] = Array.new(8) { WHITE_PIECES[:Pawn] }
+  # prepares the starting position of each piece
+  def setPieces
+    roles_order = %i[rook knight bishop queen king bishop knight rook]
+    @board[0] = roles_order.map { |role| Piece.new(:black, role) }
+    @board[1] = Array.new(8) { Piece.new(:black, :pawn) }
+    @board[6] = Array.new(8) { Piece.new(:white, :pawn) }
+    @board[7] = roles_order.map { |role| Piece.new(:white, role) }
   end
 
   def printBoard
-    puts "    a   b   c   d   e   f   g   h"
-    puts "  -#{'----' * 8}"
+    puts "    a   b   c   d   e   f   g   h\n  -#{'----' * 8}"
     @board.each_with_index do |row, idx|
       row_to_print = "#{8 - idx} |"
       row.each do |square|
-        piece = square.nil? ? " " : square
+        piece = square.nil? ? " " : square.getPiece
         row_to_print += " #{piece} |"
       end
       row_to_print += "\n  -#{'----' * 8}"
