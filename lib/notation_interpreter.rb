@@ -1,33 +1,39 @@
 # frozen_string_literal: true
 
 module NotationInterpreter
-  PIECES = "RNBQK"
+  PIECES = { "R" => :rook, "N" => :knight, "B" => :bishop, "Q" => :queen, "K" => :king, "P" => :pawn }.freeze
   ROWS = "abcdefgh"
   COLS = "12345678"
 
-  # ex. Nf3xe5 Bb5xc6 d7xc6
   def interpret(move)
     @move = move
-    p moveValid?
+    specifyPiece
+    return false unless moveValid?
+
+    @move[1] = ROWS.index(@move[1])
+    @move[-2] = ROWS.index(@move[-2])
+    return { start: move[1..2], end: move[-2..], piece: PIECES[move[0]], takes?: isTaking? }
   end
 
-  def moveValid?
-    idx = isPieceSpecified? ? 1 : 0
+  def specifyPiece
+    return if PIECES.include?(@move[0])
+
+    @move.prepend("P")
+  end
+
+  def isMoveValid?
     return isLengthValid? &&
-           ROWS.include?(@move[idx]) &&
-           COLS.include?(@move[idx + 1]) &&
+           ROWS.include?(@move[1]) &&
+           COLS.include?(@move[2]) &&
            ROWS.include?(@move[-2]) &&
            COLS.include?(@move[-1])
   end
 
-  def isPieceSpecified?
-    return PIECES.include?(@move[0])
+  def isTaking?
+    return @move[-3] == "x"
   end
 
   def isLengthValid?
-    length = 4
-    length += 1 if @move[-3] == "x"
-    length += 1 if isPieceSpecified?
-    return @move.length == length
+    return @move.length == isTaking? ? 6 : 5
   end
 end
