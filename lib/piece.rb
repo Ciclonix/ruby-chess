@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Piece
+  attr_reader :color, :role
+
   PIECES = {black: { knight: '♘', queen: '♕', king: '♔', rook: '♖', bishop: '♗', pawn: '♙' },
             white: { knight: '♞', queen: '♛', king: '♚', rook: '♜', bishop: '♝', pawn: '♟' }}.freeze
 
