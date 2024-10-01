@@ -30,7 +30,22 @@ class Board
     end
   end
 
-  def isPiece?(position, piece)
-    return @grid[position[1]][position[0]].role == piece
+  def isRole?(position, role)
+    return @grid[position[0]][position[1]].role == role
+  end
+
+  def isColor?(position, color)
+    return @grid[position[0]][position[1]].color == color
+  end
+
+  def possibleKnightMoves(position)
+    moves = [[-1, -2], [1, 2], [-1, 2], [1, -2], [-2, -1], [2, 1], [-2, 1], [2, -1]]
+    result = []
+    moves.each do |move|
+      x = position[0] + move[0]
+      y = position[1] + move[1]
+      result << [x, y] if x.between?(0, 7) && y.between?(0, 7)
+    end
+    return result
   end
 end

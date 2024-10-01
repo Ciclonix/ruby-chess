@@ -12,7 +12,7 @@ module NotationInterpreter
 
     @move[1] = ROWS.index(@move[1])
     @move[-2] = ROWS.index(@move[-2])
-    return { start: move[1..2], end: move[-2..], piece: PIECES[move[0]], takes?: isTaking? }
+    return { start: move[2..1], end: move[-1..-2], piece: PIECES[move[0]], takes?: isTaking? }
   end
 
   def specifyPiece
