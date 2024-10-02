@@ -30,22 +30,70 @@ class Board
     end
   end
 
-  def isRole?(position, role)
-    return @grid[position[0]][position[1]].role == role
+  def isRole?(pos, role)
+    square = @grid[pos[0]][pos[1]]
+    return !square.nil? && square.role == role
   end
 
-  def isColor?(position, color)
-    return @grid[position[0]][position[1]].color == color
+  def isColor?(pos, color)
+    square = @grid[pos[0]][pos[1]]
+    return !square.nil? && square.color == color
   end
 
-  def possibleKnightMoves(position)
-    moves = [[-1, -2], [1, 2], [-1, 2], [1, -2], [-2, -1], [2, 1], [-2, 1], [2, -1]]
-    result = []
-    moves.each do |move|
-      x = position[0] + move[0]
-      y = position[1] + move[1]
-      result << [x, y] if x.between?(0, 7) && y.between?(0, 7)
+  def isFree?(pos)
+    return @grid[pos[0]][pos[1]].nil?
+  end
+
+  def canMoveHere?(row, col, color, is_taking)
+    return row.between?(0, 7) && col.between?(0, 7) && (is_taking ? !isColor?([row, col], color) : isFree?([row, col]))
+  end
+
+  def possibleMovesInRow(row, col, color, is_taking, result)
+    7.times do |idx|
+      y = col + idx + 1
+      break unless canMoveHere?(row, y, color, is_taking)
+
+      result << [row, y]
     end
+
+    7.times do |idx|
+      y = col - idx - 1
+      break unless canMoveHere?(row, y, color, is_taking)
+
+      result << [row, y]
+    end
+  end
+
+  def possibleMovesInCol(row, col, color, is_taking, result)
+    7.times do |idx|
+      x = row + idx + 1
+      break unless canMoveHere?(x, col, color, is_taking)
+
+      result << [x, col]
+    end
+
+    7.times do |idx|
+      x = row - idx - 1
+      break unless canMoveHere?(x, col, color, is_taking)
+
+      result << [x, col]
+    end
+  end
+
+  def possibleKnightMoves(pos, color, is_taking, result = [])
+    moves = [[-1, -2], [1, 2], [-1, 2], [1, -2], [-2, -1], [2, 1], [-2, 1], [2, -1]]
+    moves.each do |move|
+      x = pos[0] + move[0]
+      y = pos[1] + move[1]
+      result << [x, y] if canMoveHere?(x, y, color, is_taking)
+    end
+    return result
+  end
+
+  def possibleRookMoves(pos, color, is_taking, result = [])
+    row, col = pos
+    possibleMovesInRow(row, col, color, is_taking, result)
+    possibleMovesInCol(row, col, color, is_taking, result)
     return result
   end
 end
