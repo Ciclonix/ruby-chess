@@ -10,12 +10,13 @@ class Chess
     @board = Board.new
   end
 
-  def inputMove
-    print "Digit your move: "
-    move = interpret(gets.chomp)
-    raise ArgumentError unless move
+  def inputMove(color)
+    print "#{color}, digit your move: "
+    piece = interpret(gets.chomp)
+    raise ArgumentError unless piece
 
-    return move
+    piece[:color] = (color == "White" ? :white : :black)
+    return piece
   rescue ArgumentError
     puts "Invalid move, retry"
     retry

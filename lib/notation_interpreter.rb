@@ -11,10 +11,11 @@ module NotationInterpreter
     return false unless isMoveValid?
 
     return {
-      start: [move[2].to_i - 1, ROWS.index(move[1])],
-      end: [move[-1].to_i - 1, ROWS.index(move[-2])],
-      piece: PIECES[move[0]],
-      takes?: isTaking?
+      from: [move[2].to_i - 1, ROWS.index(move[1])],
+      to: [move[-1].to_i - 1, ROWS.index(move[-2])],
+      role: PIECES[move[0]],
+      takes?: isTaking?,
+      moves: []
     }
   end
 
