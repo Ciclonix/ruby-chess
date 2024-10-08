@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 require_relative "piece"
+require_relative "moves"
 
 class Board
+  include Moves
+
   def initialize
     @grid = Array.new(8) { Array.new(8) }
     setPieces
@@ -28,5 +31,27 @@ class Board
       row_to_print += "\n  -#{'----' * 8}"
       puts row_to_print
     end
+  end
+
+  def makeMove(piece)
+    return unless isPieceCorrect?(piece)
+
+    movePiece(piece[:from], piece[:to]) if isMovePossible?(piece)
+  end
+
+  def isPieceCorrect?(piece)
+    square = @grid[piece[:from][0]][piece[:from][1]]
+    return square.role == piece[:role] && square.color == piece[:color]
+  end
+
+  def isMovePossible?(piece)
+    possibleMoves(piece)
+    return piece[:moves].include?(piece[:to]) &&
+           canMoveHere?(piece[:to][0], piece[:to][1], piece[:color], piece[:takes?])
+  end
+
+  def movePiece(from, to)
+    @grid[to[0]][to[1]] = @grid[from[0]][from[1]]
+    @grid[from[0]][from[1]] = nil
   end
 end
