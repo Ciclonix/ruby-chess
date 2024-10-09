@@ -2,6 +2,7 @@
 
 class Piece
   attr_reader :color, :role, :first_move
+  attr_accessor :possible_moves
 
   PIECES = {black: { knight: '♘', queen: '♕', king: '♔', rook: '♖', bishop: '♗', pawn: '♙' },
             white: { knight: '♞', queen: '♛', king: '♚', rook: '♜', bishop: '♝', pawn: '♟' }}.freeze
@@ -10,6 +11,7 @@ class Piece
     @color = color
     @role = role
     @first_move = true
+    @possible_moves = []
   end
 
   def getPiece

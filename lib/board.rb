@@ -34,6 +34,7 @@ class Board
   end
 
   def makeMove(piece)
+    updateMoves
     raise ArgumentError unless isPieceCorrect?(piece) && isMovePossible?(piece)
 
     movePiece(piece[:from], piece[:to])
@@ -41,18 +42,38 @@ class Board
   end
 
   def isPieceCorrect?(piece)
-    square = @grid[piece[:from][1]][piece[:from][0]]
-    return square.role == piece[:role] && square.color == piece[:color]
+    source = @grid[piece[:from][1]][piece[:from][0]]
+    return source.role == piece[:role] && source.color == piece[:color]
   end
 
   def isMovePossible?(piece)
-    possibleMoves(piece)
-    return piece[:moves].include?(piece[:to]) &&
-           canMoveHere?(piece[:to][0], piece[:to][1], piece[:color], piece[:takes?])
+    return @grid[piece[:from][1]][piece[:from][0]].possible_moves.include?(piece[:to]) &&
+           isWrittenCorrectly?(piece, @grid[piece[:to][1]][piece[:to][0]])
+  end
+
+  def isWrittenCorrectly?(piece, target)
+    return piece[:takes?] ? target.color != piece[:color] : target.nil?
   end
 
   def movePiece(from, to)
     @grid[to[1]][to[0]] = @grid[from[1]][from[0]]
     @grid[from[1]][from[0]] = nil
+  end
+
+  def updateMoves
+    @grid.each_with_index do |row, row_idx|
+      row.each_with_index do |square, col_idx|
+        next unless square.instance_of?(Piece)
+
+        piece = {
+          from: [col_idx, row_idx],
+          color: square.color,
+          role: square.role,
+          moves: []
+        }
+        possibleMoves(piece)
+        square.possible_moves = piece[:moves]
+      end
+    end
   end
 end
