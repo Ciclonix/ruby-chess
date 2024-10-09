@@ -34,9 +34,9 @@ class Board
   end
 
   def makeMove(piece)
-    return unless isPieceCorrect?(piece)
+    raise ArgumentError unless isPieceCorrect?(piece) && isMovePossible?(piece)
 
-    movePiece(piece[:from], piece[:to]) if isMovePossible?(piece)
+    movePiece(piece[:from], piece[:to])
   end
 
   def isPieceCorrect?(piece)

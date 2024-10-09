@@ -6,10 +6,6 @@ require_relative "notation_interpreter"
 class Chess
   include NotationInterpreter
 
-  def newGame
-    @board = Board.new
-  end
-
   def inputMove(color)
     print "#{color}, digit your move: "
     piece = interpret(gets.chomp)
@@ -17,8 +13,30 @@ class Chess
 
     piece[:color] = (color == "White" ? :white : :black)
     return piece
+  end
+
+  def turn(color)
+    piece = inputMove(color)
+    @board.makeMove(piece)
+    @board.printBoard
   rescue ArgumentError
     puts "Invalid move, retry"
     retry
   end
+
+  def gameLoop
+    @board.printBoard
+    loop do
+      turn("White")
+      turn("Black")
+    end
+  end
+
+  def startGame
+    @board = Board.new
+    gameLoop
+  end
 end
+
+a = Chess.new
+a.startGame

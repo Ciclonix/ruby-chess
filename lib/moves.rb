@@ -104,7 +104,7 @@ module Moves
     moves.each do |move|
       x = piece[:from][0] + move[0]
       y = piece[:from][1] + move[1]
-      piece[:moves] << [x, y] if canMoveHere?(x, y, piece[:color], piece[:takes?])
+      piece[:moves] << [x, y] if validMove?(x, y, piece[:color], piece[:takes?])
     end
   end
 
@@ -128,7 +128,7 @@ module Moves
     moves.each do |move|
       x = piece[:from][0] + move[0]
       y = piece[:from][1] + move[1]
-      piece[:moves] << [x, y] if canMoveHere?(x, y, piece[:color], piece[:takes?])
+      piece[:moves] << [x, y] if validMove?(x, y, piece[:color], piece[:takes?])
     end
   end
 
