@@ -2,8 +2,8 @@
 
 module NotationInterpreter
   PIECES = { "R" => :rook, "N" => :knight, "B" => :bishop, "Q" => :queen, "K" => :king, "P" => :pawn }.freeze
-  ROWS = "abcdefgh"
-  COLS = "12345678"
+  COLS = "abcdefgh"
+  ROWS = "12345678"
 
   def interpret(move)
     @move = move
@@ -11,8 +11,8 @@ module NotationInterpreter
     return false unless isMoveValid?
 
     return {
-      from: [move[2].to_i - 1, ROWS.index(move[1])],
-      to: [move[-1].to_i - 1, ROWS.index(move[-2])],
+      from: [COLS.index(move[1]), move[2].to_i - 1],
+      to: [COLS.index(move[-2]), move[-1].to_i - 1],
       role: PIECES[move[0]],
       takes?: isTaking?,
       moves: []
@@ -27,10 +27,10 @@ module NotationInterpreter
 
   def isMoveValid?
     return isLengthValid? &&
-           ROWS.include?(@move[1]) &&
-           COLS.include?(@move[2]) &&
-           ROWS.include?(@move[-2]) &&
-           COLS.include?(@move[-1])
+           COLS.include?(@move[1]) &&
+           ROWS.include?(@move[2]) &&
+           COLS.include?(@move[-2]) &&
+           ROWS.include?(@move[-1])
   end
 
   def isTaking?

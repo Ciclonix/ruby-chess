@@ -1,32 +1,30 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/ModuleLength
-
 module Moves
-  def canTake?(row, col, color)
+  def canTake?(col, row, color)
     square = @grid[row][col]
     return false if square.nil?
 
     return square.color != color
   end
 
-  def isFree?(row, col)
+  def isFree?(col, row)
     return @grid[row][col].nil?
   end
 
-  def canMoveHere?(row, col, color, is_taking)
-    return is_taking ? canTake?(row, col, color) : isFree?(row, col)
+  def canMoveHere?(col, row, color, is_taking)
+    return is_taking ? canTake?(col, row, color) : isFree?(col, row)
   end
 
-  def validMove?(row, col, color, is_taking)
-    row.between?(0, 7) && col.between?(0, 7) && canMoveHere?(row, col, color, is_taking)
+  def validMove?(col, row, color, is_taking = false)
+    return row.between?(0, 7) && col.between?(0, 7) && canMoveHere?(col, row, color, is_taking)
   end
 
   def addMove(x, y, piece)
-    if canMoveHere?(x, y, piece[:color])
+    if validMove?(x, y, piece[:color])
       piece[:moves] << [x, y]
       return true
-    elsif canMoveHere?(x, y, piece[:color], true)
+    elsif validMove?(x, y, piece[:color], true)
       piece[:moves] << [x, y]
     end
     return false
@@ -69,8 +67,8 @@ module Moves
 
   def checkDiagonalUpLeft(piece)
     7.times do |idx|
-      x = piece[:from][0] + idx + 1
-      y = piece[:from][1] - idx - 1
+      x = piece[:from][0] - idx - 1
+      y = piece[:from][1] + idx + 1
       break unless addMove(x, y, piece)
     end
   end
@@ -93,8 +91,8 @@ module Moves
 
   def checkDiagonalDownRight(piece)
     7.times do |idx|
-      x = piece[:from][0] - idx - 1
-      y = piece[:from][1] + idx + 1
+      x = piece[:from][0] + idx + 1
+      y = piece[:from][1] - idx - 1
       break unless addMove(x, y, piece)
     end
   end
@@ -147,5 +145,3 @@ module Moves
     end
   end
 end
-
-# rubocop:enable Metrics/ModuleLength

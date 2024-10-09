@@ -40,7 +40,7 @@ class Board
   end
 
   def isPieceCorrect?(piece)
-    square = @grid[piece[:from][0]][piece[:from][1]]
+    square = @grid[piece[:from][1]][piece[:from][0]]
     return square.role == piece[:role] && square.color == piece[:color]
   end
 
@@ -51,7 +51,7 @@ class Board
   end
 
   def movePiece(from, to)
-    @grid[to[0]][to[1]] = @grid[from[0]][from[1]]
-    @grid[from[0]][from[1]] = nil
+    @grid[to[1]][to[0]] = @grid[from[1]][from[0]]
+    @grid[from[1]][from[0]] = nil
   end
 end
