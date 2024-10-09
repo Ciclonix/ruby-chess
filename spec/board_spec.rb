@@ -7,13 +7,13 @@ require_relative "../lib/board"
 describe Board do
   subject(:board) { described_class.new }
 
-  describe "#canMoveHere?" do
+  describe "#validMove?" do
     context "when the row is invalid" do
       it "returns false" do
         row = -1
         col = 4
         color = :white
-        expect(board.canMoveHere?(row, col, color)).to be(false)
+        expect(board.validMove?(col, row, color)).to be(false)
       end
     end
 
@@ -22,7 +22,7 @@ describe Board do
         row = 3
         col = 15
         color = :white
-        expect(board.canMoveHere?(row, col, color)).to be(false)
+        expect(board.validMove?(col, row, color)).to be(false)
       end
     end
 
@@ -31,7 +31,7 @@ describe Board do
         row = 0
         col = 0
         color = :white
-        expect(board.canMoveHere?(row, col, color, true)).to be(false)
+        expect(board.validMove?(col, row, color, true)).to be(false)
       end
     end
 
@@ -40,7 +40,7 @@ describe Board do
         row = 0
         col = 0
         color = :black
-        expect(board.canMoveHere?(row, col, color, true)).to be(true)
+        expect(board.validMove?(col, row, color, true)).to be(true)
       end
     end
 
@@ -49,17 +49,17 @@ describe Board do
         row = 5
         col = 5
         color = :black
-        expect(board.canMoveHere?(row, col, color, false)).to be(true)
+        expect(board.validMove?(col, row, color, false)).to be(true)
       end
     end
   end
 
-  let(:piece) { { pos: [4, 4], color: :black, takes?: true, moves: [] } }
+  let(:piece) { { from: [4, 4], color: :black, takes?: false, moves: [] } }
 
   describe "#possibleRookMoves" do
     context "when the rook is at the center of an already set board" do
       it "returns the correct moves" do
-        moves = [[4, 5], [4, 6], [4, 7], [4, 3], [4, 2], [4, 1], [4, 0], [5, 4], [3, 4], [2, 4], [1, 4]]
+        moves = [[4, 5], [4, 3], [4, 2], [4, 1], [5, 4], [6, 4], [7, 4], [3, 4], [2, 4], [1, 4], [0, 4]]
         expect { board.possibleRookMoves(piece) }.to change { piece[:moves] }.to eql(moves)
       end
     end
@@ -68,7 +68,7 @@ describe Board do
   describe "#possibleKnightMoves" do
     context "when the knight is at the center of an already set board" do
       it "returns the correct moves" do
-        moves = [[3, 2], [5, 6], [3, 6], [5, 2], [2, 3], [2, 5]]
+        moves = [[3, 2], [5, 2], [2, 3], [6, 5], [2, 5], [6, 3]]
         expect { board.possibleKnightMoves(piece) }.to change { piece[:moves] }.to eql(moves)
       end
     end
@@ -77,7 +77,7 @@ describe Board do
   describe "#possibleBishopMoves" do
     context "when the bishop is at the center of an already set board" do
       it "returns the correct moves" do
-        moves = [[5, 3], [5, 5], [3, 3], [2, 2], [1, 1], [3, 5], [2, 6], [1, 7]]
+        moves = [[3, 5], [5, 5], [3, 3], [2, 2], [1, 1], [5, 3], [6, 2], [7, 1]]
         expect { board.possibleBishopMoves(piece) }.to change { piece[:moves] }.to eql(moves)
       end
     end
@@ -86,8 +86,8 @@ describe Board do
   describe "#possibleQueenMoves" do
     context "when the queen is at the center of an already set board" do
       it "returns the correct moves" do
-        moves = [[4, 5], [4, 6], [4, 7], [4, 3], [4, 2], [4, 1], [4, 0], [5, 4], [3, 4],
-                 [2, 4], [1, 4], [5, 3], [5, 5], [3, 3], [2, 2], [1, 1], [3, 5], [2, 6], [1, 7]]
+        moves = [[4, 5], [4, 3], [4, 2], [4, 1], [5, 4], [6, 4], [7, 4], [3, 4], [2, 4], [1, 4],
+                 [0, 4], [3, 5], [5, 5], [3, 3], [2, 2], [1, 1], [5, 3], [6, 2], [7, 1]]
         expect { board.possibleQueenMoves(piece) }.to change { piece[:moves] }.to eql(moves)
       end
     end
