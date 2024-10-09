@@ -3,31 +3,21 @@
 module Moves
   def canTake?(col, row, color)
     square = @grid[row][col]
-    return false if square.nil?
+    return [true, true] if square.nil?
 
-    return square.color != color
+    return [square.color != color, false]
   end
 
-  def isFree?(col, row)
-    return @grid[row][col].nil?
-  end
-
-  def canMoveHere?(col, row, color, is_taking)
-    return is_taking ? canTake?(col, row, color) : isFree?(col, row)
-  end
-
-  def validMove?(col, row, color, is_taking = false)
-    return row.between?(0, 7) && col.between?(0, 7) && canMoveHere?(col, row, color, is_taking)
+  def betweenLimits?(col, row)
+    return row.between?(0, 7) && col.between?(0, 7)
   end
 
   def addMove(x, y, piece)
-    if validMove?(x, y, piece[:color])
-      piece[:moves] << [x, y]
-      return true
-    elsif validMove?(x, y, piece[:color], true)
-      piece[:moves] << [x, y]
-    end
-    return false
+    return unless betweenLimits?(x, y)
+
+    valid, continue = canTake?(x, y, piece[:color])
+    piece[:moves] << [x, y] if valid
+    return continue
   end
 
   def possibleMovesInRow(piece)
@@ -124,13 +114,8 @@ module Moves
 
   def possiblePawnMoves(piece)
     factor = piece[:color] == :white ? 1 : -1
-    moves = if piece[:takes?]
-              [[1, 1], [-1, 1]]
-            elsif isFirstMove?(piece[:from][0], piece[:from][1])
-              [[0, 1], [0, 2]]
-            else
-              [[0, 1]]
-            end
+    moves = [[0, 1], [1, 1], [-1, 1]]
+    moves << [0, 2] if isFirstMove?(piece[:from][0], piece[:from][1])
     possibleMovesFromList(piece, moves, factor)
   end
 
@@ -138,7 +123,7 @@ module Moves
     moves.each do |move|
       x = piece[:from][0] + move[0]
       y = piece[:from][1] + move[1] * factor
-      piece[:moves] << [x, y] if validMove?(x, y, piece[:color], piece[:takes?])
+      piece[:moves] << [x, y] if betweenLimits?(x, y) && canTake?(x, y, piece[:color])[0]
     end
   end
 
