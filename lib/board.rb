@@ -37,6 +37,7 @@ class Board
     raise ArgumentError unless isPieceCorrect?(piece) && isMovePossible?(piece)
 
     movePiece(piece[:from], piece[:to])
+    @grid[piece[:to][1]][piece[:to][0]].move
   end
 
   def isPieceCorrect?(piece)

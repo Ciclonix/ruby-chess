@@ -97,15 +97,6 @@ module Moves
     end
   end
 
-  def possibleKnightMoves(piece)
-    moves = [[-1, -2], [1, 2], [-1, 2], [1, -2], [-2, -1], [2, 1], [-2, 1], [2, -1]]
-    moves.each do |move|
-      x = piece[:from][0] + move[0]
-      y = piece[:from][1] + move[1]
-      piece[:moves] << [x, y] if validMove?(x, y, piece[:color], piece[:takes?])
-    end
-  end
-
   def possibleRookMoves(piece)
     possibleMovesInRow(piece)
     possibleMovesInCol(piece)
@@ -123,9 +114,30 @@ module Moves
 
   def possibleKingMoves(piece)
     moves = [[1, 1], [1, 0], [1, -1], [0, 1], [0, -1], [-1, 1], [-1, 0], [-1, -1]]
+    possibleMovesFromList(piece, moves)
+  end
+
+  def possibleKnightMoves(piece)
+    moves = [[-1, -2], [1, 2], [-1, 2], [1, -2], [-2, -1], [2, 1], [-2, 1], [2, -1]]
+    possibleMovesFromList(piece, moves)
+  end
+
+  def possiblePawnMoves(piece)
+    factor = piece[:color] == :white ? 1 : -1
+    moves = if piece[:takes?]
+              [[1, 1], [-1, 1]]
+            elsif isFirstMove?(piece[:from][0], piece[:from][1])
+              [[0, 1], [0, 2]]
+            else
+              [[0, 1]]
+            end
+    possibleMovesFromList(piece, moves, factor)
+  end
+
+  def possibleMovesFromList(piece, moves, factor = 1)
     moves.each do |move|
       x = piece[:from][0] + move[0]
-      y = piece[:from][1] + move[1]
+      y = piece[:from][1] + move[1] * factor
       piece[:moves] << [x, y] if validMove?(x, y, piece[:color], piece[:takes?])
     end
   end
@@ -142,6 +154,12 @@ module Moves
       possibleQueenMoves(piece)
     when :king
       possibleKingMoves(piece)
+    when :pawn
+      possiblePawnMoves(piece)
     end
+  end
+
+  def isFirstMove?(col, row)
+    return @grid[row][col].first_move
   end
 end
