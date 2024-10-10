@@ -6,55 +6,49 @@ require_relative "../lib/board"
 
 describe Board do
   subject(:board) { described_class.new }
+  let(:piece) { { from: [4, 4], color: :black, takes?: false, moves: [] } }
 
-  describe "#validMove?" do
-    context "when the row is invalid" do
-      it "returns false" do
+  describe "#addMove" do
+    context "when the row or col are invalid" do
+      it "returns nil" do
         row = -1
         col = 4
-        color = :white
-        expect(board.validMove?(col, row, color)).to be(false)
+        expect(board.addMove(col, row, piece)).to be(nil)
       end
-    end
 
-    context "when the col is invalid" do
-      it "returns false" do
+      it "returns nil" do
         row = 3
         col = 15
-        color = :white
-        expect(board.validMove?(col, row, color)).to be(false)
-      end
-    end
-
-    context "when it's taking and the color is the same" do
-      it "returns false" do
-        row = 0
-        col = 0
-        color = :white
-        expect(board.validMove?(col, row, color, true)).to be(false)
-      end
-    end
-
-    context "when it's taking and the color is different" do
-      it "returns true" do
-        row = 0
-        col = 0
-        color = :black
-        expect(board.validMove?(col, row, color, true)).to be(true)
-      end
-    end
-
-    context "when it's not taking and the square is free" do
-      it "returns true" do
-        row = 5
-        col = 5
-        color = :black
-        expect(board.validMove?(col, row, color, false)).to be(true)
+        expect(board.addMove(col, row, piece)).to be(nil)
       end
     end
   end
 
-  let(:piece) { { from: [4, 4], color: :black, takes?: false, moves: [] } }
+  describe "#canTake?" do
+    context "when the target square is free" do
+      it "returns [true, true]" do
+        row = 5
+        col = 5
+        expect(board.canTake?(col, row, piece[:color])).to eql([true, true])
+      end
+    end
+
+    context "when the target square color is the same" do
+      it "returns [false, false]" do
+        row = 7
+        col = 7
+        expect(board.canTake?(col, row, piece[:color])).to eql([false, false])
+      end
+    end
+
+    context "when the target square color is different" do
+      it "returns [true, false]" do
+        row = 0
+        col = 0
+        expect(board.canTake?(col, row, piece[:color])).to eql([true, false])
+      end
+    end
+  end
 
   describe "#possibleRookMoves" do
     context "when the rook is at the center of an already set board" do
