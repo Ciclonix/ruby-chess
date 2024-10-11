@@ -8,16 +8,18 @@ class Board
 
   def initialize
     @grid = Array.new(8) { Array.new(8) }
+    @white_king = Piece.new(:white, :king)
+    @black_king = Piece.new(:black, :king)
     setPieces
   end
 
   # prepares the starting position of each piece
   def setPieces
     roles_order = %i[rook knight bishop queen king bishop knight rook]
-    @grid[7] = roles_order.map { |role| Piece.new(:black, role) }
+    @grid[7] = roles_order.map { |role| role == :king ? @black_king : Piece.new(:black, role) }
     @grid[6] = Array.new(8) { Piece.new(:black, :pawn) }
     @grid[1] = Array.new(8) { Piece.new(:white, :pawn) }
-    @grid[0] = roles_order.map { |role| Piece.new(:white, role) }
+    @grid[0] = roles_order.map { |role| role == :king ? @white_king : Piece.new(:white, role) }
   end
 
   def printBoard
@@ -31,10 +33,10 @@ class Board
       row_to_print += "\n  -#{'----' * 8}"
       puts row_to_print
     end
+    puts
   end
 
   def makeMove(piece)
-    updateMoves
     raise ArgumentError unless isPieceCorrect?(piece) && isMovePossible?(piece)
 
     movePiece(piece[:from], piece[:to])
@@ -43,12 +45,26 @@ class Board
 
   def isPieceCorrect?(piece)
     source = @grid[piece[:from][1]][piece[:from][0]]
+    return false if source.nil?
+
     return source.role == piece[:role] && source.color == piece[:color]
   end
 
   def isMovePossible?(piece)
-    return @grid[piece[:from][1]][piece[:from][0]].possible_moves.include?(piece[:to]) &&
+    return isMoveIncluded?(piece, @grid[piece[:from][1]][piece[:from][0]]) &&
            isWrittenCorrectly?(piece, @grid[piece[:to][1]][piece[:to][0]])
+  end
+
+  def isMoveIncluded?(piece, source)
+    moves = source.possible_moves
+    if source.role == :pawn
+      moves = if piece[:takes?]
+                moves.filter { |move| move[0] != piece[:from][0] }
+              else
+                moves.filter { |move| move[0] == piece[:from][0] }
+              end
+    end
+    return moves.include?(piece[:to])
   end
 
   def isWrittenCorrectly?(piece, target)
@@ -61,6 +77,8 @@ class Board
   end
 
   def updateMoves
+    check = false
+
     @grid.each_with_index do |row, row_idx|
       row.each_with_index do |square, col_idx|
         next unless square.instance_of?(Piece)
@@ -73,7 +91,19 @@ class Board
         }
         possibleMoves(piece)
         square.possible_moves = piece[:moves]
+        check = true if isCheck?(square)
       end
     end
+
+    return check
+  end
+
+  def isCheck?(source)
+    king = source.color == :white ? @black_king : @white_king
+    source.possible_moves.each do |target|
+      return true if @grid[target[1]][target[0]] == king
+    end
+
+    return false
   end
 end
