@@ -21,29 +21,29 @@ module Moves
   end
 
   def possibleMovesInRow(piece)
-    x = piece[:from][0]
+    x = piece[:source][0]
 
     7.times do |idx|
-      y = piece[:from][1] + idx + 1
+      y = piece[:source][1] + idx + 1
       break unless addMove(x, y, piece)
     end
 
     7.times do |idx|
-      y = piece[:from][1] - idx - 1
+      y = piece[:source][1] - idx - 1
       break unless addMove(x, y, piece)
     end
   end
 
   def possibleMovesInCol(piece)
-    y = piece[:from][1]
+    y = piece[:source][1]
 
     7.times do |idx|
-      x = piece[:from][0] + idx + 1
+      x = piece[:source][0] + idx + 1
       break unless addMove(x, y, piece)
     end
 
     7.times do |idx|
-      x = piece[:from][0] - idx - 1
+      x = piece[:source][0] - idx - 1
       break unless addMove(x, y, piece)
     end
   end
@@ -57,32 +57,32 @@ module Moves
 
   def checkDiagonalUpLeft(piece)
     7.times do |idx|
-      x = piece[:from][0] - idx - 1
-      y = piece[:from][1] + idx + 1
+      x = piece[:source][0] - idx - 1
+      y = piece[:source][1] + idx + 1
       break unless addMove(x, y, piece)
     end
   end
 
   def checkDiagonalUpRight(piece)
     7.times do |idx|
-      x = piece[:from][0] + idx + 1
-      y = piece[:from][1] + idx + 1
+      x = piece[:source][0] + idx + 1
+      y = piece[:source][1] + idx + 1
       break unless addMove(x, y, piece)
     end
   end
 
   def checkDiagonalDownLeft(piece)
     7.times do |idx|
-      x = piece[:from][0] - idx - 1
-      y = piece[:from][1] - idx - 1
+      x = piece[:source][0] - idx - 1
+      y = piece[:source][1] - idx - 1
       break unless addMove(x, y, piece)
     end
   end
 
   def checkDiagonalDownRight(piece)
     7.times do |idx|
-      x = piece[:from][0] + idx + 1
-      y = piece[:from][1] - idx - 1
+      x = piece[:source][0] + idx + 1
+      y = piece[:source][1] - idx - 1
       break unless addMove(x, y, piece)
     end
   end
@@ -115,14 +115,14 @@ module Moves
   def possiblePawnMoves(piece)
     factor = piece[:color] == :white ? 1 : -1
     moves = [[0, 1], [1, 1], [-1, 1]]
-    moves << [0, 2] if isFirstMove?(piece[:from][0], piece[:from][1])
+    moves << [0, 2] if isFirstMove?(piece[:source][0], piece[:source][1])
     possibleMovesFromList(piece, moves, factor)
   end
 
   def possibleMovesFromList(piece, moves, factor = 1)
     moves.each do |move|
-      x = piece[:from][0] + move[0]
-      y = piece[:from][1] + move[1] * factor
+      x = piece[:source][0] + move[0]
+      y = piece[:source][1] + move[1] * factor
       piece[:moves] << [x, y] if betweenLimits?(x, y) && canTake?(x, y, piece[:color])[0]
     end
   end

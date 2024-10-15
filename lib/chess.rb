@@ -27,7 +27,9 @@ class Chess
   def gameLoop
     @board.printBoard
     loop do
+      puts "Check" if @board.updateMoves
       turn("White")
+      puts "Check" if @board.updateMoves
       turn("Black")
     end
   end
