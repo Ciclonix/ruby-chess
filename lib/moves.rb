@@ -1,11 +1,15 @@
 # frozen_string_literal: true
 
 module Moves
-  def canTake?(col, row, color)
-    square = @grid[row][col]
-    return [true, true] if square.nil?
+  def isFree?(col, row)
+    return @grid[row][col].nil?
+  end
 
-    return [square.color != color, false]
+  def canEat?(col, row, color)
+    target = @grid[row][col]
+    return false if target.nil?
+
+    return target.color != color
   end
 
   def betweenLimits?(col, row)
@@ -15,9 +19,14 @@ module Moves
   def addMove(x, y, piece)
     return unless betweenLimits?(x, y)
 
-    valid, continue = canTake?(x, y, piece[:color])
-    piece[:moves] << [x, y] if valid
-    return continue
+    if isFree?(x, y)
+      piece[:moves] << [x, y]
+      return true
+    elsif canEat?(x, y, piece[:color])
+      piece[:taking_moves] << [x, y]
+    end
+
+    return false
   end
 
   def possibleMovesInRow(piece)
@@ -112,18 +121,34 @@ module Moves
     possibleMovesFromList(piece, moves)
   end
 
-  def possiblePawnMoves(piece)
-    factor = piece[:color] == :white ? 1 : -1
-    moves = [[0, 1], [1, 1], [-1, 1]]
-    moves << [0, 2] if isFirstMove?(piece[:source][0], piece[:source][1])
-    possibleMovesFromList(piece, moves, factor)
-  end
-
-  def possibleMovesFromList(piece, moves, factor = 1)
+  def possibleMovesFromList(piece, moves)
     moves.each do |move|
       x = piece[:source][0] + move[0]
-      y = piece[:source][1] + move[1] * factor
-      piece[:moves] << [x, y] if betweenLimits?(x, y) && canTake?(x, y, piece[:color])[0]
+      y = piece[:source][1] + move[1]
+      addMove(x, y, piece)
+    end
+  end
+
+  def possiblePawnMoves(piece)
+    factor = piece[:color] == :white ? 1 : -1
+    pawnMoves(piece, factor)
+    pawnTakingMoves(piece, factor)
+  end
+
+  def pawnTakingMoves(piece, factor)
+    y = piece[:source][1] + factor
+    [1, -1].each do |x_change|
+      x = piece[:source][0] + x_change
+      piece[:moves] << [x, y] if betweenLimits?(x, y) && isFree?(x, y)
+    end
+  end
+
+  def pawnMoves(piece, factor)
+    x = piece[:source][0]
+    moves = isFirstMove?(piece) ? [1, 2] : [1]
+    moves.each do |y_change|
+      y = piece[:source][1] + (y_change * factor)
+      piece[:moves] << [x, y] if betweenLimits?(x, y) && isFree?(x, y)
     end
   end
 
@@ -144,7 +169,7 @@ module Moves
     end
   end
 
-  def isFirstMove?(col, row)
-    return @grid[row][col].first_move
+  def isFirstMove?(piece)
+    return @grid[piece[:source][1]][piece[:source][0]].first_move
   end
 end

@@ -15,7 +15,8 @@ module NotationInterpreter
       target: [COLS.index(move[-2]), move[-1].to_i - 1],
       role: PIECES[move[0]],
       takes?: isTaking?,
-      moves: []
+      moves: [],
+      taking_moves: []
     }
   end
 

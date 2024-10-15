@@ -23,7 +23,7 @@ class Board
   end
 
   def printBoard
-    puts "    a   b   c   d   e   f   g   h\n  -#{'----' * 8}"
+    puts "\n    a   b   c   d   e   f   g   h\n  -#{'----' * 8}"
     @grid.reverse.each_with_index do |row, idx|
       row_to_print = "#{8 - idx} |"
       row.each do |square|
@@ -57,14 +57,9 @@ class Board
 
   def isMoveIncluded?(piece, source)
     moves = source.possible_moves
-    if source.role == :pawn
-      moves = if piece[:takes?]
-                moves.filter { |move| move[0] != piece[:source][0] }
-              else
-                moves.filter { |move| move[0] == piece[:source][0] }
-              end
-    end
-    return moves.include?(piece[:target])
+    return moves[1].include?(piece[:target]) if piece[:takes?]
+      
+    return moves[0].include?(piece[:target])
   end
 
   def isWrittenCorrectly?(piece, target)
@@ -87,10 +82,11 @@ class Board
           source: [col_idx, row_idx],
           color: square.color,
           role: square.role,
-          moves: []
+          moves: [],
+          taking_moves: []
         }
         possibleMoves(piece)
-        square.possible_moves = piece[:moves]
+        square.possible_moves = [piece[:moves], piece[:taking_moves]]
         check = true if isCheck?(square)
       end
     end
@@ -100,7 +96,7 @@ class Board
 
   def isCheck?(source)
     king = source.color == :white ? @black_king : @white_king
-    source.possible_moves.each do |target|
+    source.possible_moves[1].each do |target|
       return true if @grid[target[1]][target[0]] == king
     end
 
