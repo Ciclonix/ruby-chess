@@ -9,17 +9,17 @@ class Chess
   def inputMove(color)
     print "#{color}, digit your move: "
     piece = interpret(gets.chomp)
-    raise ArgumentError unless piece
+    raise TypeError unless piece
 
-    piece[:color] = (color == "White" ? :white : :black)
+    piece[:source_color] = (color == "White" ? :white : :black)
     return piece
   end
 
   def turn(color)
-    piece = inputMove(color)
-    @board.makeMove(piece)
+    move = inputMove(color)
+    @board.makeMove(move)
     @board.printBoard
-  rescue ArgumentError
+  rescue TypeError
     puts "Invalid move, retry"
     retry
   end

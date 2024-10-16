@@ -13,10 +13,8 @@ module NotationInterpreter
     return {
       source: [COLS.index(move[1]), move[2].to_i - 1],
       target: [COLS.index(move[-2]), move[-1].to_i - 1],
-      role: PIECES[move[0]],
-      takes?: isTaking?,
-      moves: [],
-      taking_moves: []
+      source_role: PIECES[move[0]],
+      takes?: isTaking?
     }
   end
 

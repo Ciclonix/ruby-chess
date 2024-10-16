@@ -11,6 +11,7 @@ class Board
     @white_king = Piece.new(:white, :king)
     @black_king = Piece.new(:black, :king)
     setPieces
+    setPiecesPosition
   end
 
   # prepares the starting position of each piece
@@ -20,6 +21,16 @@ class Board
     @grid[6] = Array.new(8) { Piece.new(:black, :pawn) }
     @grid[1] = Array.new(8) { Piece.new(:white, :pawn) }
     @grid[0] = roles_order.map { |role| role == :king ? @white_king : Piece.new(:white, role) }
+  end
+
+  def setPiecesPosition
+    @grid.each_with_index do |row, row_idx|
+      row.each_with_index do |square, col_idx|
+        next unless square.instance_of?(Piece)
+
+        square.position = [col_idx, row_idx]
+      end
+    end
   end
 
   def printBoard
@@ -36,34 +47,35 @@ class Board
     puts
   end
 
-  def makeMove(piece)
-    raise ArgumentError unless isPieceCorrect?(piece) && isMovePossible?(piece)
+  def makeMove(move)
+    raise TypeError unless isSourceCorrect?(move) && isMovePossible?(move)
 
-    movePiece(piece[:source], piece[:target])
-    @grid[piece[:target][1]][piece[:target][0]].move
+    movePiece(move[:source], move[:target])
+    updatePosition(move[:target])
+    @grid[move[:target][1]][move[:target][0]].move
   end
 
-  def isPieceCorrect?(piece)
-    source = @grid[piece[:source][1]][piece[:source][0]]
+  def isSourceCorrect?(move)
+    source = @grid[move[:source][1]][move[:source][0]]
     return false if source.nil?
 
-    return source.role == piece[:role] && source.color == piece[:color]
+    return source.role == move[:source_role] && source.color == move[:source_color]
   end
 
-  def isMovePossible?(piece)
-    return isMoveIncluded?(piece, @grid[piece[:source][1]][piece[:source][0]]) &&
-           isWrittenCorrectly?(piece, @grid[piece[:target][1]][piece[:target][0]])
+  def isMovePossible?(move)
+    return isMoveIncluded?(move, @grid[move[:source][1]][move[:source][0]]) &&
+           isWrittenCorrectly?(move, @grid[move[:target][1]][move[:target][0]])
   end
 
-  def isMoveIncluded?(piece, source)
+  def isMoveIncluded?(move, source)
     moves = source.possible_moves
-    return moves[1].include?(piece[:target]) if piece[:takes?]
-      
-    return moves[0].include?(piece[:target])
+    return moves[1].include?(move[:target]) if move[:takes?]
+
+    return moves[0].include?(move[:target])
   end
 
-  def isWrittenCorrectly?(piece, target)
-    return piece[:takes?] ? target.color != piece[:color] : target.nil?
+  def isWrittenCorrectly?(move, target)
+    return move[:takes?] ? target.color != move[:source_color] : target.nil?
   end
 
   def movePiece(source, target)
@@ -71,33 +83,27 @@ class Board
     @grid[source[1]][source[0]] = nil
   end
 
+  def updatePosition(target)
+    @grid[target[1]][target[0]].position = target
+  end
+
   def updateMoves
     check = false
+    @grid.each do |row|
+      row.each do |piece|
+        next unless piece.instance_of?(Piece)
 
-    @grid.each_with_index do |row, row_idx|
-      row.each_with_index do |square, col_idx|
-        next unless square.instance_of?(Piece)
-
-        piece = {
-          source: [col_idx, row_idx],
-          color: square.color,
-          role: square.role,
-          moves: [],
-          taking_moves: []
-        }
         possibleMoves(piece)
-        square.possible_moves = [piece[:moves], piece[:taking_moves]]
-        check = true if isCheck?(square)
+        check = true if isCheck?(piece)
       end
     end
-
     return check
   end
 
   def isCheck?(source)
     king = source.color == :white ? @black_king : @white_king
     source.possible_moves[1].each do |target|
-      return true if @grid[target[1]][target[0]] == king
+      return true if king.position == target
     end
 
     return false
