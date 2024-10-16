@@ -102,10 +102,79 @@ class Board
 
   def isCheck?(source)
     king = source.color == :white ? @black_king : @white_king
-    source.possible_moves[1].each do |target|
-      return true if king.position == target
+    return source.possible_moves[1].include?(king.position)
+  end
+
+  def isCheckmate?(color)
+    king = color == "White" ? @black_king : @white_king
+    attackers = getAttackers(king)
+    return !(canEatPiece?(attackers) || canBlockAttack?(king, attackers) || canMoveKing?(king))
+  end
+
+  def getAttackers(target)
+    attackers = []
+    target_position = target.instance_of?(Array) ? target : target.position
+    @grid.each do |row|
+      row.each do |piece|
+        next unless piece.instance_of?(Piece)
+        next if piece == target
+
+        attackers << piece if isPieceAttacking?(piece, target_position)
+      end
+    end
+    return attackers
+  end
+
+  def isPieceAttacking?(piece, target_position)
+    return (piece.role != :pawn && piece.possible_moves.flatten(1).include?(target_position)) ||
+           piece.possible_moves[1].include?(target_position)
+  end
+
+  def canEatPiece?(target)
+    return false if target.length > 1
+
+    return !getAttackers(target[0]).empty?
+  end
+
+  def canBlockAttack?(king, attackers)
+    target = attackers[0]
+    return false if attackers.length > 1 || target.role == :knight
+
+    delta_x = target.position[0] - king.position[0]
+    delta_y = target.position[1] - king.position[1]
+    return canBeBlocked?(target, delta_x, delta_y)
+  end
+
+  def canBeBlocked?(target, delta_x, delta_y)
+    base_x = target.position[0]
+    base_y = target.position[0]
+    diff = delta_x.zero? ? delta_y : delta_x
+    diff.abs.times do |idx|
+      next if idx.zero?
+
+      x = base_x + idx * (delta_x <=> 0)
+      y = base_y + idx * (delta_y <=> 0)
+      return true unless getAttackers([x, y])
     end
 
+    return false
+  end
+
+  def canMoveKing?(king)
+    grid_temp = @grid.dup
+    king.possible_moves.each do |possible_moves|
+      possible_moves.each do |possible_move|
+        movePiece(king.position, possible_move)
+        unless updateMoves
+          @grid = grid_temp
+          updateMoves
+          return true
+        end
+
+        @grid = grid_temp
+      end
+    end
+    updateMoves
     return false
   end
 end

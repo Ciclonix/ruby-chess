@@ -27,9 +27,9 @@ class Chess
   def gameLoop
     @board.printBoard
     loop do
-      puts "Check" if @board.updateMoves
+      checkWin("Black") if @board.updateMoves
       turn("White")
-      puts "Check" if @board.updateMoves
+      checkWin("White") if @board.updateMoves
       turn("Black")
     end
   end
@@ -37,6 +37,14 @@ class Chess
   def startGame
     @board = Board.new
     gameLoop
+  end
+
+  def checkWin(color)
+    if @board.isCheckmate?(color)
+      puts "#{color} checkmates his opponent!"
+    else
+      puts "Check"
+    end
   end
 end
 
