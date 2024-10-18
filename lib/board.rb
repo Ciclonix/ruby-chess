@@ -48,11 +48,67 @@ class Board
   end
 
   def makeMove(move)
-    raise TypeError unless isSourceCorrect?(move) && isMovePossible?(move)
+    if move[:castle?]
+      raise TypeError unless isCastlePossible?(move)
 
-    movePiece(move[:source], move[:target])
-    updatePosition(move[:target])
-    @grid[move[:target][1]][move[:target][0]].move
+      castle(move)
+    else
+      raise TypeError unless isSourceCorrect?(move) && isMovePossible?(move)
+
+      move(move[:source], move[:target])
+    end
+  end
+
+  def castle(move)
+    row = move[:source_color] == :white ? 0 : 7
+
+    if move[:side] == :king
+      rook_pos = [7, row]
+      new_rook_pos = [5, row]
+      new_king_pos = [6, row]
+    else
+      rook_pos = [0, row]
+      new_rook_pos = [3, row]
+      new_king_pos = [2, row]
+    end
+
+    movePiece([4, row], new_king_pos)
+    movePiece(rook_pos, new_rook_pos)
+    updatePosition(new_king_pos)
+    updatePosition(new_rook_pos)
+  end
+
+  def isCastlePossible?(move)
+    row = move[:source_color] == :white ? 0 : 7
+    if move[:side] == :queen
+      rook_col = 0
+      idx = -1
+    else
+      rook_col = 7
+      idx = 1
+    end
+    return true if validCastle?(@grid[row][4], @grid[row][rook_col], row, idx)
+
+    return false
+  end
+
+  def validCastle?(king, rook, row, idx)
+    return !king.nil? && !rook.nil? && king.first_move && rook.first_move &&
+           areBeingAttacked?(king, row, idx) && areFree?(row, idx)
+  end
+
+  def areBeingAttacked?(king, row, idx)
+    return getAttackers(king).empty? && getAttackers([4 + idx, row], king.color).empty? &&
+           getAttackers([4 + idx * 2, row], king.color).empty?
+  end
+
+  def areFree?(row, idx)
+    return isFree?(4 + idx, row) && isFree?(4 + idx * 2, row) && (idx == 1 || isFree?(1, row))
+  end
+
+  def move(source, target)
+    movePiece(source, target)
+    updatePosition(target)
   end
 
   def isSourceCorrect?(move)
@@ -84,6 +140,7 @@ class Board
   end
 
   def updatePosition(target)
+    @grid[target[1]][target[0]].first_move = false
     @grid[target[1]][target[0]].position = target
   end
 
@@ -111,18 +168,22 @@ class Board
     return !(canEatPiece?(attackers) || canBlockAttack?(king, attackers) || canMoveKing?(king))
   end
 
-  def getAttackers(target)
+  def getAttackers(target, color = nil)
     attackers = []
     target_position = target.instance_of?(Array) ? target : target.position
     @grid.each do |row|
       row.each do |piece|
-        next unless piece.instance_of?(Piece)
-        next if piece == target
+        next unless validAttacker?(piece, target, color)
 
         attackers << piece if isPieceAttacking?(piece, target_position)
       end
     end
     return attackers
+  end
+
+  def validAttacker?(piece, target, color)
+    return piece.instance_of?(Piece) && piece != target &&
+           (color.nil? || piece.color != color)
   end
 
   def isPieceAttacking?(piece, target_position)

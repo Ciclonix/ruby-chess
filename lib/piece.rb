@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class Piece
-  attr_reader :color, :role, :first_move
-  attr_accessor :possible_moves, :position
+  attr_accessor :possible_moves, :position, :first_move
+  attr_reader :color, :role
 
   PIECES = {black: { knight: '♘', queen: '♕', king: '♔', rook: '♖', bishop: '♗', pawn: '♙' },
             white: { knight: '♞', queen: '♛', king: '♚', rook: '♜', bishop: '♝', pawn: '♟' }}.freeze
@@ -17,9 +17,5 @@ class Piece
 
   def getPiece
     return PIECES[@color][@role]
-  end
-
-  def move
-    @first_move = false
   end
 end

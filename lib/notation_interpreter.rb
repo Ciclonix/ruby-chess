@@ -7,14 +7,15 @@ module NotationInterpreter
 
   def interpret(move)
     @move = move
-    specifyPiece
+    return @castle if isCastle?
     return false unless isMoveValid?
 
     return {
-      source: [COLS.index(move[1]), move[2].to_i - 1],
-      target: [COLS.index(move[-2]), move[-1].to_i - 1],
+      source: [COLS.index(move[1]), ROWS.index(move[2])],
+      target: [COLS.index(move[-2]), ROWS.index(move[-1])],
       source_role: PIECES[move[0]],
-      takes?: isTaking?
+      takes?: isTaking?,
+      castle?: false
     }
   end
 
@@ -25,6 +26,7 @@ module NotationInterpreter
   end
 
   def isMoveValid?
+    specifyPiece
     return isLengthValid? &&
            COLS.include?(@move[1]) &&
            ROWS.include?(@move[2]) &&
@@ -38,5 +40,23 @@ module NotationInterpreter
 
   def isLengthValid?
     return @move.length == isTaking? ? 6 : 5
+  end
+
+  def isCastle?
+    if %w[O-O 0-0].include?(@move)
+      @castle = {
+        castle?: true,
+        side: :king
+      }
+      return true
+    elsif %w[O-O-O 0-0-0].include?(@move)
+      @castle = {
+        castle?: true,
+        side: :queen
+      }
+      return true
+    end
+
+    return false
   end
 end
