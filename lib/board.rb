@@ -21,6 +21,8 @@ class Board
     @grid[6] = Array.new(8) { Piece.new(:black, :pawn) }
     @grid[1] = Array.new(8) { Piece.new(:white, :pawn) }
     @grid[0] = roles_order.map { |role| role == :king ? @white_king : Piece.new(:white, role) }
+    @grid[0][5] = nil
+    @grid[0][6] = nil
   end
 
   def setPiecesPosition
@@ -48,11 +50,62 @@ class Board
   end
 
   def makeMove(move)
-    raise TypeError unless isSourceCorrect?(move) && isMovePossible?(move)
+    if move[:castle?]
+      raise TypeError unless isCastlePossible?(move)
 
-    movePiece(move[:source], move[:target])
-    updatePosition(move[:target])
-    @grid[move[:target][1]][move[:target][0]].move
+      castle(move)
+    else
+      raise TypeError unless isSourceCorrect?(move) && isMovePossible?(move)
+
+      move(move[:source], move[:target])
+    end
+  end
+
+  def castle(move)
+    row = move[:source_color] == :white ? 0 : 7
+
+    if move[:side] == :king
+      rook_pos = [7, row]
+      new_rook_pos = [5, row]
+      new_king_pos = [6, row]
+    else
+      rook_pos = [0, row]
+      new_rook_pos = [3, row]
+      new_king_pos = [2, row]
+    end
+
+    movePiece([4, row], new_king_pos)
+    movePiece(rook_pos, new_rook_pos)
+    updatePosition(new_king_pos)
+    updatePosition(new_rook_pos)
+  end
+
+  def isCastlePossible?(move)
+    row = move[:source_color] == :white ? 0 : 7
+    if move[:side] == :queen
+      rook_col = 0
+      idx = -1
+    else
+      rook_col = 7
+      idx = 1
+    end
+    king = @grid[row][4]
+    rook = @grid[row][rook_col]
+    return true if !king.nil? && !rook.nil? && king.first_move && rook.first_move && areAttacking?(king, row, idx)
+
+    return false
+  end
+
+  def areAttacking?(king, row, idx)
+    p getAttackers(king).empty?
+    p getAttackers([4 + idx, row]).empty?
+    p getAttackers([4 + idx * 2, row]).empty?
+    return getAttackers(king).empty? && getAttackers([4 + idx, row]).empty? && getAttackers([4 + idx * 2, row]).empty?
+  end
+
+  def move(source, target)
+    movePiece(source, target)
+    updatePosition(target)
   end
 
   def isSourceCorrect?(move)
@@ -84,6 +137,7 @@ class Board
   end
 
   def updatePosition(target)
+    @grid[target[1]][target[0]].first_move = false
     @grid[target[1]][target[0]].position = target
   end
 
