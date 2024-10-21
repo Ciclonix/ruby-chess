@@ -7,11 +7,11 @@ class Chess
   include NotationInterpreter
 
   def inputMove(color)
-    print "#{color}, digit your move: "
+    print "#{color.capitalize}, digit your move: "
     piece = interpret(gets.chomp)
     raise TypeError unless piece
 
-    piece[:source_color] = (color == "White" ? :white : :black)
+    piece[:source_color] = color
     return piece
   end
 
@@ -27,10 +27,12 @@ class Chess
   def gameLoop
     @board.printBoard
     loop do
-      checkWin("Black") if @board.updateMoves
-      turn("White")
-      checkWin("White") if @board.updateMoves
-      turn("Black")
+      break if isWin?
+
+      turn(:white)
+      break if isWin?
+
+      turn(:black)
     end
   end
 
@@ -39,11 +41,16 @@ class Chess
     gameLoop
   end
 
-  def checkWin(color)
-    if @board.isCheckmate?(color)
-      puts "#{color} checkmates his opponent!"
+  def isWin?
+    king = @board.updateMoves
+    return if king.nil?
+
+    if @board.isCheckmate?(king)
+      puts "#{king.color.capitalize} loses for checkmate!"
+      return true
     else
-      puts "Check"
+      puts "Check on #{king.color}'s king"
+      return false
     end
   end
 end

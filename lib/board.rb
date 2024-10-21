@@ -145,25 +145,28 @@ class Board
   end
 
   def updateMoves
-    check = false
     @grid.each do |row|
       row.each do |piece|
         next unless piece.instance_of?(Piece)
 
+        piece.possible_moves = [[], []]
         possibleMoves(piece)
-        check = true if isCheck?(piece)
       end
     end
-    return check
+    return isCheck?
   end
 
-  def isCheck?(source)
-    king = source.color == :white ? @black_king : @white_king
-    return source.possible_moves[1].include?(king.position)
+  def isCheck?
+    if !getAttackers(@white_king).empty?
+      return @white_king
+    elsif !getAttackers(@black_king).empty?
+      return @black_king
+    else
+      return nil
+    end
   end
 
-  def isCheckmate?(color)
-    king = color == "White" ? @black_king : @white_king
+  def isCheckmate?(king)
     attackers = getAttackers(king)
     return !(canEatPiece?(attackers) || canBlockAttack?(king, attackers) || canMoveKing?(king))
   end
@@ -182,8 +185,7 @@ class Board
   end
 
   def validAttacker?(piece, target, color)
-    return piece.instance_of?(Piece) && piece != target &&
-           (color.nil? || piece.color != color)
+    return piece.instance_of?(Piece) && piece != target && piece.color != color
   end
 
   def isPieceAttacking?(piece, target_position)
@@ -201,41 +203,41 @@ class Board
     target = attackers[0]
     return false if attackers.length > 1 || target.role == :knight
 
-    delta_x = target.position[0] - king.position[0]
-    delta_y = target.position[1] - king.position[1]
+    delta_x = king.position[0] - target.position[0]
+    delta_y = king.position[1] - target.position[1]
     return canBeBlocked?(target, delta_x, delta_y)
   end
 
   def canBeBlocked?(target, delta_x, delta_y)
-    base_x = target.position[0]
-    base_y = target.position[0]
+    base_x, base_y = target.position
     diff = delta_x.zero? ? delta_y : delta_x
     diff.abs.times do |idx|
       next if idx.zero?
 
       x = base_x + idx * (delta_x <=> 0)
       y = base_y + idx * (delta_y <=> 0)
-      return true unless getAttackers([x, y])
+      return true unless getAttackers([x, y], target.color).empty?
     end
 
     return false
   end
 
   def canMoveKing?(king)
-    grid_temp = @grid.dup
-    king.possible_moves.each do |possible_moves|
-      possible_moves.each do |possible_move|
-        movePiece(king.position, possible_move)
-        unless updateMoves
-          @grid = grid_temp
-          updateMoves
-          return true
-        end
+    return king.possible_moves.flatten(1).any { |move| canKingMoveHere?(king, move) }
+  end
 
-        @grid = grid_temp
-      end
-    end
-    updateMoves
-    return false
+  def canKingMoveHere?(king, move)
+    temp_position = king.position
+    temp_piece = @grid[move[1]][move[0]]
+    moveKing(king, move)
+    attackers = getAttackers(king)
+    moveKing(king, temp_position)
+    @grid[move[1]][move[0]] = temp_piece
+    return attackers.empty?
+  end
+
+  def moveKing(king, target)
+    movePiece(king.position, target)
+    king.position = target
   end
 end
