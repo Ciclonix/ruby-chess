@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Moves
+module PossibleMoves
   def isFree?(col, row)
     return @grid[row][col].nil?
   end
@@ -139,7 +139,7 @@ module Moves
     y = piece.position[1] + factor
     [1, -1].each do |x_change|
       x = piece.position[0] + x_change
-      piece.possible_moves[1] << [x, y] if betweenLimits?(x, y) && isFree?(x, y)
+      piece.possible_moves[1] << [x, y] if betweenLimits?(x, y) && canEat?(x, y, piece.color)
     end
   end
 

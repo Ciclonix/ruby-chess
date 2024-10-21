@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require_relative "piece"
-require_relative "moves"
+require_relative "possible_moves"
 
 class Board
-  include Moves
+  include PossibleMoves
 
   def initialize
     @grid = Array.new(8) { Array.new(8) }
