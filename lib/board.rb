@@ -119,8 +119,11 @@ class Board
   end
 
   def isMovePossible?(move)
-    return isMoveIncluded?(move, @grid[move[:source][1]][move[:source][0]]) &&
-           isWrittenCorrectly?(move, @grid[move[:target][1]][move[:target][0]])
+    source = @grid[move[:source][1]][move[:source][0]]
+    target = @grid[move[:target][1]][move[:target][0]]
+    return isMoveIncluded?(move, source) &&
+           isWrittenCorrectly?(move, target) &&
+           isMoveLegal?(source, move[:target])
   end
 
   def isMoveIncluded?(move, source)
@@ -132,6 +135,22 @@ class Board
 
   def isWrittenCorrectly?(move, target)
     return move[:takes?] ? target.color != move[:source_color] : target.nil?
+  end
+
+  def isMoveLegal?(source, target)
+    temp_piece = @grid[target[1]][target[0]]
+    temp_position = source.position
+    tempMove(source, target)
+    check = updateMoves
+    tempMove(source, temp_position)
+    @grid[target[1]][target[0]] = temp_piece
+    updateMoves
+    return check != (source.color == :white ? @white_king : @black_king)
+  end
+
+  def tempMove(source, target_position)
+    movePiece(source.position, target_position)
+    source.position = target_position
   end
 
   def movePiece(source, target)
@@ -223,21 +242,6 @@ class Board
   end
 
   def canMoveKing?(king)
-    return king.possible_moves.flatten(1).any { |move| canKingMoveHere?(king, move) }
-  end
-
-  def canKingMoveHere?(king, move)
-    temp_position = king.position
-    temp_piece = @grid[move[1]][move[0]]
-    moveKing(king, move)
-    attackers = getAttackers(king)
-    moveKing(king, temp_position)
-    @grid[move[1]][move[0]] = temp_piece
-    return attackers.empty?
-  end
-
-  def moveKing(king, target)
-    movePiece(king.position, target)
-    king.position = target
+    return king.possible_moves.flatten(1).any? { |move| isMoveLegal?(king, move) }
   end
 end

@@ -38,6 +38,7 @@ class Chess
 
   def startGame
     @board = Board.new
+    puts "Use long algebraic notation for your moves"
     gameLoop
   end
 
