@@ -2,26 +2,36 @@
 
 require_relative "board"
 require_relative "notation_interpreter"
+require_relative "chess_exceptions"
 
 class Chess
   include NotationInterpreter
+  include ChessExceptions
 
   def inputMove(color)
     print "#{color.capitalize}, digit your move: "
-    piece = interpret(gets.chomp)
-    raise TypeError unless piece
+    move = gets.chomp
+    raise SaveLoadData if saveLoadData?(move)
 
-    piece[:source_color] = color
-    return piece
+    move = interpret(move)
+    raise MoveNotValid unless move
+
+    move[:source_color] = color
+    return move
   end
 
   def turn(color)
     move = inputMove(color)
     @board.makeMove(move)
     @board.printBoard
-  rescue TypeError
-    puts "Invalid move, retry"
+  rescue MoveNotValid
+    puts "Move not valid, retry\n\n"
     retry
+  rescue MoveNotPossible
+    puts "Move not possible/legal, retry\n\n"
+    retry
+  rescue SaveLoadData
+    @board.printBoard
   end
 
   def gameLoop
@@ -29,16 +39,16 @@ class Chess
     loop do
       break if isWin?
 
-      turn(:white)
-      break if isWin?
-
-      turn(:black)
+      color = @board.last_turn == :white ? :black : :white
+      turn(color)
     end
   end
 
   def startGame
     @board = Board.new
-    puts "Use long algebraic notation for your moves"
+    puts "Use long algebraic notation for your moves\n"\
+         "You can save anytime by digiting 'save'\n"\
+         "If you want to load a previous game digit 'load'"
     gameLoop
   end
 
@@ -53,6 +63,18 @@ class Chess
       puts "Check on #{king.color}'s king"
       return false
     end
+  end
+
+  def saveLoadData?(move)
+    if move == "save"
+      @board.saveData
+      return true
+    elsif move == "load"
+      @board.loadData
+      return true
+    end
+
+    return false
   end
 end
 

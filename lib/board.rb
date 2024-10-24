@@ -2,14 +2,20 @@
 
 require_relative "piece"
 require_relative "possible_moves"
+require_relative "chess_exceptions"
+require "yaml"
 
 class Board
   include PossibleMoves
+  include ChessExceptions
+
+  attr_reader :last_turn
 
   def initialize
     @grid = Array.new(8) { Array.new(8) }
     @white_king = Piece.new(:white, :king)
     @black_king = Piece.new(:black, :king)
+    @last_turn = :black
     setPieces
     setPiecesPosition
   end
@@ -49,14 +55,15 @@ class Board
 
   def makeMove(move)
     if move[:castle?]
-      raise TypeError unless isCastlePossible?(move)
+      raise MoveNotPossible unless isCastlePossible?(move)
 
       castle(move)
     else
-      raise TypeError unless isSourceCorrect?(move) && isMovePossible?(move)
+      raise MoveNotPossible unless isSourceCorrect?(move) && isMovePossible?(move)
 
       move(move[:source], move[:target])
     end
+    @last_turn = move[:source_color]
   end
 
   def castle(move)
@@ -195,7 +202,7 @@ class Board
     target_position = target.instance_of?(Array) ? target : target.position
     @grid.each do |row|
       row.each do |piece|
-        next unless validAttacker?(piece, target, color)
+        next unless validAttacker?(piece, color)
 
         attackers << piece if isPieceAttacking?(piece, target_position)
       end
@@ -203,8 +210,8 @@ class Board
     return attackers
   end
 
-  def validAttacker?(piece, target, color)
-    return piece.instance_of?(Piece) && piece != target && piece.color != color
+  def validAttacker?(piece, color)
+    return piece.instance_of?(Piece) && piece.role != :king && piece.color != color
   end
 
   def isPieceAttacking?(piece, target_position)
@@ -235,13 +242,30 @@ class Board
 
       x = base_x + idx * (delta_x <=> 0)
       y = base_y + idx * (delta_y <=> 0)
-      return true unless getAttackers([x, y], target.color).empty?
+      return true unless getAttackersNoKings([x, y], target.color).empty?
     end
 
     return false
   end
 
+  def getAttackersNoKings(target, color)
+    return getAttackers(target, color).filter { |piece| piece.role != :king }
+  end
+
   def canMoveKing?(king)
     return king.possible_moves.flatten(1).any? { |move| isMoveLegal?(king, move) }
+  end
+
+  def saveData
+    save_data = YAML.dump({grid: @grid, last_turn: @last_turn})
+    File.open("save_data.yml", "w") { |file| file.write(save_data) }
+  end
+
+  def loadData
+    save_data = YAML.load(File.read("save_data.yml"), permitted_classes: [Symbol, Piece])
+    @grid = save_data[:grid]
+    @last_turn = save_data[:last_turn]
+  rescue Errno::ENOENT
+    puts "Save file not found!"
   end
 end
