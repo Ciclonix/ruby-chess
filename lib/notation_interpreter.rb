@@ -39,7 +39,7 @@ module NotationInterpreter
   end
 
   def isLengthValid?
-    return @move.length == isTaking? ? 6 : 5
+    return @move.length == (isTaking? ? 6 : 5)
   end
 
   def isCastle?

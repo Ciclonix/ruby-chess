@@ -16,6 +16,7 @@ class Board
     @white_king = Piece.new(:white, :king)
     @black_king = Piece.new(:black, :king)
     @last_turn = :black
+    @no_capture_count = 0
     setPieces
     setPiecesPosition
   end
@@ -67,7 +68,9 @@ class Board
       raise MoveNotPossible unless isSourceCorrect?(move) && isMovePossible?(move)
 
       move(move[:source], move[:target])
+      @no_capture_count = -1 if move[:takes?]
     end
+    @no_capture_count += 1
     @last_turn = move[:source_color]
   end
 
@@ -246,7 +249,11 @@ class Board
   end
 
   def saveData
-    save_data = YAML.dump({grid: @grid, last_turn: @last_turn})
+    save_data = YAML.dump({
+                            grid: @grid,
+                            last_turn: @last_turn,
+                            no_capture_count: @no_capture_count
+                          })
     File.open("save_data.yml", "w") { |file| file.write(save_data) }
   end
 
@@ -254,7 +261,22 @@ class Board
     save_data = YAML.load(File.read("save_data.yml"), permitted_classes: [Symbol, Piece])
     @grid = save_data[:grid]
     @last_turn = save_data[:last_turn]
+    @no_capture_count = save_data[:no_capture_count]
   rescue Errno::ENOENT
     puts "Save file not found!"
+  end
+
+  def isDraw?
+    return onlyKingsLeft? || noLegalMoves? || (@no_capture_count == 50)
+  end
+
+  def onlyKingsLeft?
+    return @grid.flatten.compact.length == 2
+  end
+
+  def noLegalMoves?
+    return @grid.flatten.compact.none? do |piece|
+      piece.possible_moves.flatten(1).any? { |move| piece.color != @last_turn && isMoveLegal?(piece, move) }
+    end
   end
 end

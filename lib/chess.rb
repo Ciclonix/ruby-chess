@@ -37,7 +37,7 @@ class Chess
   def gameLoop
     @board.printBoard
     loop do
-      break if isWin?
+      break if endGame?
 
       color = @board.last_turn == :white ? :black : :white
       turn(color)
@@ -52,11 +52,14 @@ class Chess
     gameLoop
   end
 
-  def isWin?
+  def endGame?
     king = @board.updateMoves
-    return if king.nil?
-
-    if @board.isCheckmate?(king)
+    if @board.isDraw?
+      puts "It's a draw!"
+      return true
+    elsif king.nil?
+      return false
+    elsif @board.isCheckmate?(king)
       puts "#{king.color.capitalize} loses for checkmate!"
       return true
     else
