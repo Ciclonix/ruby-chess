@@ -40,14 +40,19 @@ class Board
   end
 
   def printBoard
-    puts "\n    a   b   c   d   e   f   g   h\n  -#{'----' * 8}"
+    puts "\n     a   b   c   d   e   f   g   h\n"\
+         "   ┌───┬───┬───┬───┬───┬───┬───┬───┐\n"
     @grid.reverse.each_with_index do |row, idx|
-      row_to_print = "#{8 - idx} |"
+      row_to_print = " #{8 - idx} │"
       row.each do |square|
         piece = square.nil? ? " " : square.getPiece
-        row_to_print += " #{piece} |"
+        row_to_print += " #{piece} │"
       end
-      row_to_print += "\n  -#{'----' * 8}"
+      row_to_print += if idx == 7
+                        "\n   └───┴───┴───┴───┴───┴───┴───┴───┘"
+                      else
+                        "\n   ├───┼───┼───┼───┼───┼───┼───┼───┤"
+                      end
       puts row_to_print
     end
     puts
@@ -87,14 +92,8 @@ class Board
 
   def isCastlePossible?(move)
     row = move[:source_color] == :white ? 0 : 7
-    if move[:side] == :queen
-      rook_col = 0
-      idx = -1
-    else
-      rook_col = 7
-      idx = 1
-    end
-    return true if validCastle?(@grid[row][4], @grid[row][rook_col], row, idx)
+    rook_col = move[:side] == :queen ? 0 : 7
+    return true if validCastle?(@grid[row][4], @grid[row][rook_col], row, rook_col <=> 4)
 
     return false
   end
@@ -171,13 +170,9 @@ class Board
   end
 
   def updateMoves
-    @grid.each do |row|
-      row.each do |piece|
-        next unless piece.instance_of?(Piece)
-
-        piece.possible_moves = [[], []]
-        possibleMoves(piece)
-      end
+    @grid.flatten.compact.each do |piece|
+      piece.possible_moves = [[], []]
+      possibleMoves(piece)
     end
     return isCheck?
   end
@@ -200,18 +195,12 @@ class Board
   def getAttackers(target, color = nil)
     attackers = []
     target_position = target.instance_of?(Array) ? target : target.position
-    @grid.each do |row|
-      row.each do |piece|
-        next unless validAttacker?(piece, color)
+    @grid.flatten.compact.each do |piece|
+      next unless piece.color != color
 
-        attackers << piece if isPieceAttacking?(piece, target_position)
-      end
+      attackers << piece if isPieceAttacking?(piece, target_position)
     end
     return attackers
-  end
-
-  def validAttacker?(piece, color)
-    return piece.instance_of?(Piece) && piece.role != :king && piece.color != color
   end
 
   def isPieceAttacking?(piece, target_position)
