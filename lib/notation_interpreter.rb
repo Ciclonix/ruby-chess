@@ -1,14 +1,20 @@
 # frozen_string_literal: true
 
+# This module function is to transform a string written using long algebraic notation to
+# an hash containing values which will be used to check it's validity and execute it after
+
 module NotationInterpreter
   PIECES = { "R" => :rook, "N" => :knight, "B" => :bishop, "Q" => :queen, "K" => :king, "P" => :pawn }.freeze
   COLS = "abcdefgh"
   ROWS = "12345678"
 
+  # Main method of the module
+  # Checks if the argument string is written in the standard long algebraic notation and
+  # returns an hash containing the interpreted move
   def interpret(move)
     @move = move
-    return @castle if isCastle?
-    return false unless isMoveValid?
+    return @castle if isCastle? # if it's a castle it returns a different hash
+    return nil unless isMoveValid?
 
     return {
       source: [COLS.index(move[1]), ROWS.index(move[2])],
@@ -42,6 +48,8 @@ module NotationInterpreter
     return @move.length == (isTaking? ? 6 : 5)
   end
 
+  # Checks if the move is a castle
+  # If it is, it sets the value of @castle to an hash which will be returned as the interpreted move
   def isCastle?
     if %w[O-O 0-0].include?(@move)
       @castle = {

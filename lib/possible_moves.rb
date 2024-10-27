@@ -1,6 +1,29 @@
 # frozen_string_literal: true
 
+# This module function is to save each piece possible moves in its class variable Array, which is divided in two parts:
+# the first one is used to store moves that DO NOT TAKE other pieces,
+# the second one is used to store moves that TAKE other pieces.
+
 module PossibleMoves
+  # This is the main method of the module
+  # It sorts which method the module should use by checking the piece role
+  def possibleMoves(piece)
+    case piece.role
+    when :rook
+      possibleRookMoves(piece)
+    when :knight
+      possibleKnightMoves(piece)
+    when :bishop
+      possibleBishopMoves(piece)
+    when :queen
+      possibleQueenMoves(piece)
+    when :king
+      possibleKingMoves(piece)
+    when :pawn
+      possiblePawnMoves(piece)
+    end
+  end
+
   def isFree?(col, row)
     return @grid[row][col].nil?
   end
@@ -29,6 +52,7 @@ module PossibleMoves
     return false
   end
 
+  # Checks for possible moves in a row
   def possibleMovesInRow(piece)
     x = piece.position[0]
 
@@ -43,6 +67,7 @@ module PossibleMoves
     end
   end
 
+  # Checks for possible moves in a column
   def possibleMovesInCol(piece)
     y = piece.position[1]
 
@@ -57,6 +82,7 @@ module PossibleMoves
     end
   end
 
+  # Checks for possible moves in the two diagonals
   def possibleMovesInDiag(piece)
     checkDiagonalUpLeft(piece)
     checkDiagonalUpRight(piece)
@@ -111,6 +137,7 @@ module PossibleMoves
     possibleMovesInDiag(piece)
   end
 
+  # Kings and Knights have their own section since they move in a "special" way
   def possibleKingMoves(piece)
     moves = [[1, 1], [1, 0], [1, -1], [0, 1], [0, -1], [-1, 1], [-1, 0], [-1, -1]]
     possibleMovesFromList(piece, moves)
@@ -129,6 +156,8 @@ module PossibleMoves
     end
   end
 
+  # Pawns have their own section since they have special cases, which are:
+  # 2 squares possible starting move and eating from the side only
   def possiblePawnMoves(piece)
     factor = piece.color == :white ? 1 : -1
     pawnMoves(piece, factor)
@@ -149,23 +178,6 @@ module PossibleMoves
     moves.each do |y_change|
       y = piece.position[1] + (y_change * factor)
       piece.possible_moves[0] << [x, y] if betweenLimits?(x, y) && isFree?(x, y)
-    end
-  end
-
-  def possibleMoves(piece)
-    case piece.role
-    when :rook
-      possibleRookMoves(piece)
-    when :knight
-      possibleKnightMoves(piece)
-    when :bishop
-      possibleBishopMoves(piece)
-    when :queen
-      possibleQueenMoves(piece)
-    when :king
-      possibleKingMoves(piece)
-    when :pawn
-      possiblePawnMoves(piece)
     end
   end
 end

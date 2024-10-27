@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# Main class of the project
+# Manages turns, custom errors and game ending scenarios
+
 require_relative "board"
 require_relative "notation_interpreter"
 require_relative "chess_exceptions"
@@ -8,18 +11,24 @@ class Chess
   include NotationInterpreter
   include ChessExceptions
 
+  # Gets a move from the user
+  # If if it saves of loads the game it does so and raises SaveLoadData
+  # Uses the module NotationInterpreter on the move and raises MoveNotValid if it's nil
   def inputMove(color)
     print "#{color.capitalize}, digit your move: "
     move = gets.chomp
     raise SaveLoadData if saveLoadData?(move)
 
     move = interpret(move)
-    raise MoveNotValid unless move
+    raise MoveNotValid if move.nil?
 
     move[:source_color] = color
     return move
   end
 
+  # Turn of the specified color
+  # Gets a move and uses a Board object to check and do it
+  # Manages each possible custom error it may be raised during the checks
   def turn(color)
     move = inputMove(color)
     @board.makeMove(move)
@@ -34,7 +43,12 @@ class Chess
     @board.printBoard
   end
 
+  # Start and main loop of the game
   def gameLoop
+    @board = Board.new
+    puts "Use long algebraic notation for your moves\n" \
+         "You can save anytime by digiting 'save'\n" \
+         "If you want to load a previous game digit 'load'"
     @board.printBoard
     loop do
       break if endGame?
@@ -44,17 +58,10 @@ class Chess
     end
   end
 
-  def startGame
-    @board = Board.new
-    puts "Use long algebraic notation for your moves\n"\
-         "You can save anytime by digiting 'save'\n"\
-         "If you want to load a previous game digit 'load'"
-    gameLoop
-  end
-
+  # Checks for a game ending situation (win or draw)
   def endGame?
-    king = @board.updateMoves
-    if @board.isDraw?
+    king = @board.kingInCheck
+    if king.nil? && @board.isDraw?
       puts "It's a draw!"
       return true
     elsif king.nil?
@@ -68,6 +75,7 @@ class Chess
     end
   end
 
+  # Manages saves and loads of the game
   def saveLoadData?(move)
     if move == "save"
       @board.saveData
@@ -82,4 +90,4 @@ class Chess
 end
 
 a = Chess.new
-a.startGame
+a.gameLoop
